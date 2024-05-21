@@ -42,7 +42,7 @@ for n = 1 : length(sub_names)
 
         RS_file = dir([func_path filesep sub_names{n} '_' ses_name '_task-RS_bold.nii']);
         anat_file = dir([anat_path filesep sub_names{n} '_' ses_name '_T1w.nii']);
-        fmap_file = dir([fmap_path filesep sub_names{n} '_' ses_name '_T1w.nii']);
+        fmap_file = dir([fmap_path filesep sub_names{n} '_' ses_name '*.nii']);
 
         if isempty(RS_file)
             warning([func_path ': functional file not found!'])
@@ -53,9 +53,25 @@ for n = 1 : length(sub_names)
             warning([anat_path ': structural file not found!'])
             continue
         end
+        
+        disp(['**** ' sub_names{n} ' **** ' ses_name ':'])
+        disp(anat_file(1).name)
+        disp(RS_file(1).name)
+        disp(char({fmap_file.name}))
+        fprintf('\n')
+
+        if length(fmap_file) ~= 3
+            warning([fmap_path ': magnitude1 + magnitude2 + phasediff requried!'])
+            continue
+        end
 
         batch.Setup.functionals{n}{m} = [func_path filesep RS_file(1).name];
         batch.Setup.structurals{n}{m} = [anat_path filesep anat_file(1).name];
+
+        % Load field map
+        batch.Setup.secondarydatasets.functionals_label = 'fmap';
+        batch.Setup.secondarydatasets.functionals_type = 4;
+        batch.Setup.secondarydatasets.functionals_explicit{n}{m} = [repmat([fmap_path filesep], 3, 1) char({fmap_file.name})];
 
         for j = 1 : length(conditions)
             if m == j
@@ -68,7 +84,6 @@ for n = 1 : length(sub_names)
         end
 
     end
-    
 end
 
 batch.filename = BATCHFILENAME;
@@ -93,8 +108,8 @@ end
 
 % Preprocessing using 'VDM' and 'default_mni' options
 batch.Setup.preprocessing.steps = {'functional_label_as_original'; 
-                                   % 'functional_vdm_create'; 
-                                   % 'functional_vdm_apply'; 
+                                   'functional_vdm_create'; 
+                                   'functional_vdm_apply'; 
                                    'functional_realign&unwarp';
                                    'functional_center';
                                    'functional_slicetime';
