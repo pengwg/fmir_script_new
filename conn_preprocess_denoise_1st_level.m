@@ -1,10 +1,10 @@
 clear
 
 % Load un-preprocessed data into gui only
-setup_only = false;
+setup_only = true;
 
 % Has to be absolute path. Relative path not working
-path_subjects = '/home/pw0032/Work/fusOUD/fmri';
+path_subjects = '/home/peng/Work/fusOUD/fmri';
 
 % Single subject
 subjects_matching = 'sub-221-FUS'; 
@@ -68,10 +68,13 @@ for n = 1 : length(sub_names)
         batch.Setup.functionals{n}{m} = [func_path filesep RS_file(1).name];
         batch.Setup.structurals{n}{m} = [anat_path filesep anat_file(1).name];
 
+        % Default secondary data after preprocess
+        batch.Setup.secondarydatasets(1).functionals_type = 2;
+        batch.Setup.secondarydatasets(1).functionals_label = 'unsmoothed volumes';
         % Load field map
-        batch.Setup.secondarydatasets.functionals_label = 'fmap';
-        batch.Setup.secondarydatasets.functionals_type = 4;
-        batch.Setup.secondarydatasets.functionals_explicit{n}{m} = [repmat([fmap_path filesep], 3, 1) char({fmap_file.name})];
+        batch.Setup.secondarydatasets(2).functionals_label = 'fmap';
+        batch.Setup.secondarydatasets(2).functionals_type = 4;
+        batch.Setup.secondarydatasets(2).functionals_explicit{n}{m} = [repmat([fmap_path filesep], 3, 1) char({fmap_file.name})];
 
         for j = 1 : length(conditions)
             if m == j
