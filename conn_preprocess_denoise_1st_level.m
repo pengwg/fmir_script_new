@@ -1,7 +1,7 @@
 clear
 
 % Load un-preprocessed data into gui only
-setup_only = true;
+setup_only = false;
 
 % Has to be absolute path. Relative path not working
 path_subjects = '/home/peng/Work/fusOUD/fmri';
@@ -30,6 +30,7 @@ end
 
 % MR parameters
 TR = 1;
+blipdir = -1;
 
 for n = 1 : length(sub_names)
     sessions = dir([path_subjects, filesep, sub_names{n}, filesep, 'ses*']);
@@ -125,6 +126,7 @@ batch.Setup.preprocessing.steps = {'functional_label_as_original';
                                    'functional_label_as_smoothed'};
 
 batch.Setup.preprocessing.sliceorder = 'interleaved (Siemens)';
+batch.Setup.preprocessing.vdm_blip = blipdir;
 batch.Setup.done = 1;
 batch.Setup.overwrite = 'Yes';
 
