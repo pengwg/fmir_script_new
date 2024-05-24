@@ -55,10 +55,10 @@ for n = 1 : length(sub_names)
             continue
         end
         
-        disp(['**** ' sub_names{n} ' **** ' ses_name ':'])
-        disp(anat_file(1).name)
-        disp(RS_file(1).name)
-        disp(char({fmap_file.name}))
+        disp(['**** ' sub_names{n} ' - ' ses_name ' ****'])
+        disp(['Structural: ' anat_file(1).name])
+        disp(['Functional: ' RS_file(1).name])
+        disp([repmat('FieldMap: ', length({fmap_file.name}), 1) char({fmap_file.name})])
         fprintf('\n')
 
         if length(fmap_file) ~= 3
