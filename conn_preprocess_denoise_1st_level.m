@@ -4,11 +4,15 @@ clear
 setup_only = true;
 
 % Has to be absolute path. Relative path not working
-path_subjects = '/home/peng/Work/fusOUD/fmri';
-subjects_list = {'sub-221-FUS', 'sub-222-FUS', 'sub-223-FUS'};
+path_subjects = '/media/dgt00003/dgytl/FUS';
+
+subjects_list = {'sub-212-FUS', 'sub-214-FUS', 'sub-215-FUS', 'sub-216-FUS', 'sub-218-FUS', ...
+                 'sub-219-FUS', 'sub-221-FUS', 'sub-222-FUS', 'sub-223-FUS', 'sub-228-FUS', ...
+                 'sub-229-FUS', 'sub-231-FUS'};
+
 sessions_list = {'ses-00', 'ses-07', 'ses-30', 'ses-90'};
 
-BATCHFILENAME = [path_subjects '/fusOUD_90Days'];
+BATCHFILENAME = [path_subjects '/Lancet_OUD_90Days'];
 
 
 % MR parameters
