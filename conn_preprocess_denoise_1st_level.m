@@ -36,39 +36,43 @@ for n = 1 : length(subjects_list)
         anat_path = [path_subjects filesep sub_name filesep ses_name filesep 'anat'];
         fmap_path = [path_subjects filesep sub_name filesep ses_name filesep 'fmap'];
 
-        RS_file = dir([func_path filesep sub_name '_' ses_name '_task-RS_bold.nii']);
-        anat_file = dir([anat_path filesep sub_name '_' ses_name '_T1w.nii']);
-        
-        mag_files = dir([fmap_path filesep sub_name '_' ses_name '*magnitude*.nii']);
-        pd_file = dir([fmap_path filesep sub_name '_' ses_name '*phasediff.nii']);
-        fmap_files = [mag_files; pd_file];
-
+        RS_file = find_or_extract([func_path filesep sub_name '_' ses_name '_task-RS_bold.nii']);
         if isempty(RS_file)
             warning([func_path ': functional file not found, skip this session!'])
             continue
         end
 
+        anat_file = find_or_extract([anat_path filesep sub_name '_' ses_name '_T1w.nii']);
         if isempty(anat_file)
             warning([anat_path ': structural file not found, skip this session!'])
             continue
         end
-        
+
+        mag_file = find_or_extract([fmap_path filesep sub_name '_' ses_name '*magnitude1.nii']);
+        pd_file = find_or_extract([fmap_path filesep sub_name '_' ses_name '*phasediff.nii']);
+        if isempty(mag_file) || isempty(pd_file)
+            warning([fmap_path ': magnitude1 + phasediff not found, skip this session!'])
+            continue
+        end
+        fmap_files = {mag_file, pd_file};
+
         disp(['**** ' sub_name ' ' ses_name ' ****'])
-        disp(['Structural: ' anat_file(1).name])
-        disp(['Functional: ' RS_file(1).name])
-        disp([repmat('FieldMap: ', length({fmap_files.name}), 1) char({fmap_files.name})])
+        disp(['Structural: ' anat_file])
+        disp(['Functional: ' RS_file])
+        disp(['FieldMap: ' mag_file])
+        disp(['FieldMap: ' pd_file])
         fprintf('\n')
 
-        if length(fmap_files) ~= 3
-            warning([fmap_path ': magnitude1 + magnitude2 + phasediff not found, skip this session!'])
+        if length(fmap_files) ~= 2
+            warning([fmap_path ': magnitude1 + phasediff not found, skip this session!'])
             continue
         end
 
         % This is a valid session now
         ses_count = ses_count + 1;
 
-        batch.Setup.functionals{sub_count+1}{ses_count} = [func_path filesep RS_file(1).name];
-        batch.Setup.structurals{sub_count+1}{ses_count} = [anat_path filesep anat_file(1).name];
+        batch.Setup.functionals{sub_count+1}{ses_count} = [func_path filesep RS_file];
+        batch.Setup.structurals{sub_count+1}{ses_count} = [anat_path filesep anat_file];
 
         % Default secondary data after preprocess
         batch.Setup.secondarydatasets(1).functionals_type = 2;
@@ -76,7 +80,7 @@ for n = 1 : length(subjects_list)
         % Load field map
         batch.Setup.secondarydatasets(2).functionals_label = 'fmap';
         batch.Setup.secondarydatasets(2).functionals_type = 4;
-        batch.Setup.secondarydatasets(2).functionals_explicit{sub_count+1}{ses_count} = [repmat([fmap_path filesep], 3, 1) char({fmap_files.name})];
+        batch.Setup.secondarydatasets(2).functionals_explicit{sub_count+1}{ses_count} = [repmat([fmap_path filesep], 2, 1) char(fmap_files)];
 
         for j = 1 : length(sessions_list)
             batch.Setup.conditions.onsets{j}{sub_count+1}{ses_count} = [];
@@ -149,3 +153,22 @@ conn_batch(batch);
 conn
 conn('load', BATCHFILENAME);
 conn gui_analyses
+
+%% Find a file specify by path_name, unzip path_name.gz if necessary
+function out_name = find_or_extract(path_name)
+
+FILE = dir(path_name);
+if ~isempty(FILE)
+    out_name = FILE.name;
+else
+    FILE = dir([path_name '.gz']);
+    if ~isempty(FILE)
+        fprintf(['Unzipping ' FILE.name ' ...\n\n'])
+        gunzip([FILE.folder filesep FILE.name]);
+        out_name = FILE.name(1 : end-3);
+    else
+        out_name = [];
+    end
+end
+
+end
